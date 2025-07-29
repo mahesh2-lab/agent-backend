@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Upload - Professional Resume Analyzer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Professional Resume Analyzer</h1>
+        <p>Upload your resume for instant analysis and feedback</p>
+      </div>
+
+      <div class="upload-section">
+        <form
+          id="uploadForm"
+          action="/api/resume/upload"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <div class="file-input-wrapper">
+            <input
+              type="file"
+              name="resumeFile"
+              id="resumeFile"
+              accept=".pdf,.doc,.docx"
+              required
+            />
+            <label for="resumeFile" class="file-label">
+              <div class="file-icon">📄</div>
+              <span class="file-text">Choose Resume File</span>
+              <span class="file-info">PDF, DOC, or DOCX (Max 10MB)</span>
+            </label>
+          </div>
+
+          <div class="selected-file" id="selectedFile" style="display: none">
+            <div class="file-preview">
+              <span class="file-name" id="fileName"></span>
+              <span class="file-size" id="fileSize"></span>
+            </div>
+            <button type="button" class="remove-file" id="removeFile">✕</button>
+          </div>
+
+          <button type="submit" class="upload-btn" id="uploadBtn" disabled>
+            <span class="btn-text">Analyze Resume</span>
+            <div class="loading-spinner" style="display: none"></div>
+          </button>
+        </form>
+      </div>
+
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🎯</div>
+          <h3>ATS Optimization</h3>
+          <p>Check compatibility with Applicant Tracking Systems</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h3>Detailed Analysis</h3>
+          <p>Get comprehensive feedback on your resume content</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Instant Results</h3>
+          <p>Receive analysis within seconds of upload</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

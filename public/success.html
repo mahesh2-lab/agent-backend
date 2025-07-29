@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Successful - Resume Analyzer</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .success-container {
+        text-align: center;
+        max-width: 500px;
+      }
+
+      .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+        animation: bounce 0.6s ease-in-out;
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+
+      .success-title {
+        color: #28a745;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .success-message {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-block;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #667eea;
+        border: 2px solid #667eea;
+      }
+
+      .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .processing-info {
+        background: rgba(102, 126, 234, 0.1);
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 2rem;
+        border-left: 4px solid #667eea;
+      }
+
+      .processing-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+
+      .processing-text {
+        color: #666;
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="success-container">
+        <div class="success-icon">✅</div>
+        <h1 class="success-title">Upload Successful!</h1>
+        <p class="success-message">
+          Your resume has been uploaded successfully and is now being analyzed.
+          You'll receive detailed feedback shortly.
+        </p>
+
+        <div class="action-buttons">
+          <a href="/" class="btn btn-primary">Upload Another Resume</a>
+          <a href="#" class="btn btn-secondary" onclick="checkAnalysis()"
+            >Check Analysis Status</a
+          >
+        </div>
+
+        <div class="processing-info">
+          <div class="processing-title">📊 What's happening now?</div>
+          <div class="processing-text">
+            Our AI system is analyzing your resume for ATS compatibility,
+            content optimization, and providing personalized recommendations.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function checkAnalysis() {
+        // You can implement this to check analysis status
+        // For now, just show an alert
+        alert("Analysis is in progress. Results will be available shortly!");
+      }
+
+      // Auto-refresh or redirect after analysis is complete
+      // This could be enhanced to poll for results
+      setTimeout(() => {
+        const message = document.querySelector(".processing-text");
+        message.innerHTML =
+          "Analysis complete! Check your email for detailed results or contact support if you need assistance.";
+      }, 5000);
+    </script>
+  </body>
+</html>
