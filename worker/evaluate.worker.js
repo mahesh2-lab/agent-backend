@@ -29,9 +29,9 @@ const handleEligibleCandidate = async (
       JSON.stringify(jobDescription)
     );
 
-    const joinlink = `${
-      APP_URL || "https://frontend-wheat-seven-36.vercel.app"
-    }/?id=${tokenResponse.id}`;
+    const joinlink = `${APP_URL || "frontend-three-wine-89.vercel.app"}/?id=${
+      tokenResponse.id
+    }`;
     const email = candidateDetails.email;
     const subject = result.response.communication.email_subject;
 
