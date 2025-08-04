@@ -30,18 +30,22 @@ const handleEligibleCandidate = async (
       JSON.stringify(jobDescription)
     );
 
-    const joinlink = `${APP_URL || "frontend-three-wine-89.vercel.app"}/?id=${
+
+    const joinlink = `${APP_URL || "https://frontend-teal-tau-19.vercel.app"}/?id=${
       tokenResponse.id
     }`;
 
     const email = candidateDetails.email;
     const subject = result.response.communication.email_subject;
 
+
+
     if (!is_eligible) {
       let text = result.response.communication.email_body;
       const emailResponse = await sendEmail(email, subject, text);
       if (emailResponse.success) {
         console.log("Email sent successfully:", emailResponse.messageId);
+        console.log("Candidate is not eligible.");
       } else {
         console.error("Error sending email:", emailResponse.error);
       }
@@ -54,8 +58,10 @@ const handleEligibleCandidate = async (
 
     const emailResponse = await sendEmail(email, subject, text);
 
+
     if (emailResponse.success) {
       console.log("Email sent successfully:", emailResponse.messageId);
+      console.log("Candidate is eligible. Join link:", joinlink);
     } else {
       console.error("Error sending email:", emailResponse.error);
       // Decide if this should throw an error and fail the job
@@ -78,6 +84,9 @@ const processEvaluationJob = async (job) => {
     };
 
     const result = await handleSingleFile(file, jobDescription);
+
+    console.log(`Job ${job.id} processed successfully:`, result);
+    
 
     const is_eligible = result.response.evaluation.is_eligible;
     const candidateDetails = result.response.candidate_profile;
