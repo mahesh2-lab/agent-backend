@@ -10,7 +10,10 @@
     <div class="container">
       <div class="header">
         <h1>Professional Resume Analyzer</h1>
-        <p>Upload your resume for instant analysis and feedback</p>
+        <p>
+          Upload your resume and job description for tailored analysis and
+          feedback
+        </p>
       </div>
 
       <div class="upload-section">
@@ -43,8 +46,25 @@
             <button type="button" class="remove-file" id="removeFile">✕</button>
           </div>
 
+          <div class="job-description-wrapper">
+            <label for="jobDescription" class="job-description-label">
+              <div class="job-icon">💼</div>
+              <span class="job-text">Job Description</span>
+              <span class="job-info"
+                >Paste the job description for better analysis</span
+              >
+            </label>
+            <textarea
+              name="jobDescription"
+              id="jobDescription"
+              placeholder="Paste the job description here to get tailored resume analysis..."
+              rows="6"
+              required
+            ></textarea>
+          </div>
+
           <button type="submit" class="upload-btn" id="uploadBtn" disabled>
-            <span class="btn-text">Analyze Resume</span>
+            <span class="btn-text">Analyze Resume & Match</span>
             <div class="loading-spinner" style="display: none"></div>
           </button>
         </form>
@@ -53,18 +73,18 @@
       <div class="features">
         <div class="feature">
           <div class="feature-icon">🎯</div>
-          <h3>ATS Optimization</h3>
-          <p>Check compatibility with Applicant Tracking Systems</p>
+          <h3>Job Matching</h3>
+          <p>Analyze how well your resume matches the job description</p>
         </div>
         <div class="feature">
           <div class="feature-icon">📊</div>
           <h3>Detailed Analysis</h3>
-          <p>Get comprehensive feedback on your resume content</p>
+          <p>Get comprehensive feedback on your resume content and structure</p>
         </div>
         <div class="feature">
           <div class="feature-icon">⚡</div>
           <h3>Instant Results</h3>
-          <p>Receive analysis within seconds of upload</p>
+          <p>Receive tailored analysis within seconds of upload</p>
         </div>
       </div>
     </div>

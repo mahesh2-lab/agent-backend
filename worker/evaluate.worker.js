@@ -20,7 +20,8 @@ const evaluateQueue = new Queue("evaluate", {
 const handleEligibleCandidate = async (
   candidateDetails,
   jobDescription,
-  result
+  result,
+  is_eligible
 ) => {
   try {
     const tokenResponse = await createToken(
@@ -32,8 +33,20 @@ const handleEligibleCandidate = async (
     const joinlink = `${APP_URL || "frontend-three-wine-89.vercel.app"}/?id=${
       tokenResponse.id
     }`;
+
     const email = candidateDetails.email;
     const subject = result.response.communication.email_subject;
+
+    if (!is_eligible) {
+      let text = result.response.communication.email_body;
+      const emailResponse = await sendEmail(email, subject, text);
+      if (emailResponse.success) {
+        console.log("Email sent successfully:", emailResponse.messageId);
+      } else {
+        console.error("Error sending email:", emailResponse.error);
+      }
+      return; 
+    }
 
     let text = result.response.communication.email_body;
     text = text.replace(LINK_PLACEHOLDER, joinlink);
@@ -69,12 +82,12 @@ const processEvaluationJob = async (job) => {
     const is_eligible = result.response.evaluation.is_eligible;
     const candidateDetails = result.response.candidate_profile;
 
-    if (is_eligible) {
-      console.log(`Candidate ${candidateDetails.name} is eligible.`);
-      await handleEligibleCandidate(candidateDetails, jobDescription, result);
-    } else {
-      console.log(`Candidate is not eligible for job.`);
-    }
+    await handleEligibleCandidate(
+      candidateDetails,
+      jobDescription,
+      result,
+      is_eligible
+    );
   } catch (err) {
     console.error(`Error processing evaluation job ${job.id}:`, err);
     throw err; // Throw error to fail the job
