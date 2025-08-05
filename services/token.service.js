@@ -34,7 +34,7 @@ export const createToken = async (name, candidateDetails, jobDescription) => {
       {
         identity: name,
         name: name,
-        ttl: 30 * 60, // 30 minutes
+        ttl: 60 * 60 * 24, // 24 hours
       }
     );
 

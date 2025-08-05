@@ -8,7 +8,7 @@ import { sendEmail } from "../services/email.service.js";
 
 dotenv.config();
 
-const { REDIS_HOST, REDIS_PORT, APP_URL } = process.env;
+const { REDIS_HOST, REDIS_PORT } = process.env;
 
 const LINK_PLACEHOLDER = "[placeholder link]";
 const PASSWORD_PLACEHOLDER = "[password]";
@@ -31,7 +31,7 @@ const handleEligibleCandidate = async (
     );
 
 
-    const joinlink = `${APP_URL || "https://frontend-teal-tau-19.vercel.app"}/?id=${
+    const joinlink = `${'https://agent.hostmyidea.me' || "https://frontend-teal-tau-19.vercel.app"}/?id=${
       tokenResponse.id
     }`;
 

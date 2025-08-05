@@ -1,24 +1,13 @@
 Full Stack Developer (MERN Stack)
 Location: Pune, India / Remote
-
 We are seeking a talented Full Stack Developer to build and maintain our web and mobile applications. You will be responsible for creating responsive front-ends with React.js and Tailwind CSS, developing robust back-end APIs with Node.js, and managing MongoDB databases.
-
 What you'll do:
-
 Develop end-to-end features for our core products.
-
 Build and optimize scalable RESTful APIs and database schemas.
-
 Implement secure authentication using JWT and deploy applications on AWS.
-
 Collaborate in a fast-paced environment to bring ideas from concept to production.
-
 What we're looking for:
-
 Strong proficiency and project experience with the MERN stack.
-
 Solid skills in JavaScript, HTML, and CSS.
-
 A problem-solver passionate about building clean, efficient code.
-
 Experience with React Native, Docker, or Generative AI is a major plus
