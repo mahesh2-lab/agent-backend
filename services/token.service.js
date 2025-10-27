@@ -34,7 +34,7 @@ export const createToken = async (name, candidateDetails, jobDescription) => {
       {
         identity: name,
         name: name,
-        ttl: 60 * 60 * 24, // 24 hours
+        ttl: 60 * 60 * 24
       }
     );
 
@@ -66,6 +66,6 @@ export const createToken = async (name, candidateDetails, jobDescription) => {
     };
   } catch (error) {
     console.error("Error creating token:", error);
-    throw new Error("Failed to create token");
+    throw new Error("Failed to create token");  
   }
 };

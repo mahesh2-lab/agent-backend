@@ -6,7 +6,7 @@ import {
 
 const router = express.Router();
 
-router.post("/receive", receiveInterviewAnalysis);
+router.post("/process", receiveInterviewAnalysis); // Alias for /receive
 router.get("/get/:room_name", getInterviewAnalysis);
 
 export default router;

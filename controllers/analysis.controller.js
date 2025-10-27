@@ -1,15 +1,30 @@
 import { updateEntry, getEntryByRoomName } from "../services/db.service.js";
+import { handleProcessTranscript } from "../services/evaluate.service.js";
 
 export const receiveInterviewAnalysis = async (req, res) => {
   try {
-    const { room_name, analysis, status = "completed" } = req.body;
+    const {
+      room_name,
+      transcript_data,
+      candidate_details,
+      job_description,
+      status = "completed",
+    } = req.body;
 
-    if (!room_name || !analysis) {
+    if (!room_name || !transcript_data) {
       return res.status(400).json({
         status: "error",
-        message: "room_name and analysis are required",
+        message: "room_name and transcript_data are required",
       });
     }
+
+    const analysis = await handleProcessTranscript(transcript_data);
+
+    analysis["context"] = {
+      candidate_details: candidate_details,
+      job_description: job_description,
+      room_name: room_name,
+    };
 
     // Save analysis to database
     const dbData = {
