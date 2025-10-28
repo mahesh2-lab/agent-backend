@@ -72,9 +72,19 @@ const handleEligibleCandidate = async (
   }
 };
 
-const processEvaluationJob = async (job) => {
+export const processEvaluationJob = async (job) => {
+  
+  console.log(job);
+  
+
   const { filePath, jobDescription } = job.data;
   console.log(`Processing job ${job.id} for file ${filePath}`);
+
+  console.log({
+    filePath,
+    jobDescription
+  });
+  
 
   try {
     const fileBuffer = await fs.readFile(filePath);
@@ -97,6 +107,9 @@ const processEvaluationJob = async (job) => {
       result,
       is_eligible
     );
+
+    return result;
+
   } catch (err) {
     console.error(`Error processing evaluation job ${job.id}:`, err);
     throw err; // Throw error to fail the job

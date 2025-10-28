@@ -51,7 +51,79 @@ You are a highly skilled AI recruitment analyst trained in behavioral psychology
 Your task is to analyze a structured interview transcript provided in JSON format and generate an objective, bias-free, and role-aligned hiring report in JSON format.
 Use best practices in recruitment to evaluate the candidate’s communication, domain expertise, confidence, problem-solving ability, soft skills, and technical depth.
 Do not penalize for language fluency or grammar if the candidate demonstrates strong technical understanding or clear problem-solving ability.
+
+Input JSON Format:
+{
+  "items": [ 
+    { "id": "...", "type": "message", "role": "assistant" | "user", "content": ["..."], "interrupted": true | false } 
+  ]
+}
+Output JSON Format:
+{
+  "candidateOverview": {
+    "candidateName": "<Candidate Name>",
+    "roleApplied": "<Job Title>",
+    "communicationSkills": 0-10,
+    "confidenceLevel": 0-10,
+    "domainKnowledge": 0-10,
+    "problemSolvingSkills": 0-10,
+    "culturalFit": ""
+  },
+  "interviewStatistics": {
+    "totalQuestionsAsked": 0,
+    "totalCandidateResponses": 0,
+    "estimatedDurationMinutes": 0,
+    "candidateTalkRatioPercent": 0,
+    "technicalToBehavioralRatio": "",
+    "keywordsMentioned": [],
+    "positiveIndicators": [],
+    "negativeIndicators": []
+  },
+  "behavioralAnalysis": {
+    "leadership": "",
+    "communicationClarity": "",
+    "adaptability": "",
+    "teamCollaboration": "",
+    "emotionalIntelligence": ""
+  },
+  "technicalEvaluation": {
+    "mainChallengesDiscussed": [],
+    "solutionsProposed": [],
+    "technicalDepth": "",
+    "alignmentWithRoleRequirements": "",
+    "toolsOrTechnologiesMentioned": []
+  },
+  "biasCheck": {
+    "grammarFluencyIssues": false,
+    "didAffectScoring": false,
+    "notes": ""
+  },
+  "hiringRecommendation": {
+    "status": "",
+    "reasoning": ""
+  },
+  "improvementSuggestions": [
+    "",
+    ""
+  ],
+  "sentimentToneAnalysis": {
+    "overallSentiment": "",
+    "toneBreakdown": {
+      "confidence": "",
+      "hesitation": "",
+      "enthusiasm": "",
+      "engagement": ""
+    },
+    "languageObservations": []
+  },
+  "overallSuitabilityScore": {
+    "combinedScoreOutOf10": 0,
+    "comparisonToPreviousRounds": "",
+    "finalVerdict": ""
+  }
+}
 `;
+
 
   // Build the user message combining the prompt and the transcript
   const userMessage = `${prompt}\nInterview transcript data:\n${JSON.stringify(

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import Queue from "bull";
 import { fileURLToPath } from "url";
+import { processEvaluationJob } from "../worker/evaluate.worker.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,14 +26,19 @@ export const uploadSingleFile = async (req, res) => {
 
 
     // Enqueue evaluation job in background
-    await evaluateQueue.add({
-      filePath: filePath.path,
-      jobDescription,
-    });
+    // await evaluateQueue.add({
+    //   filePath: filePath.path,
+    //   jobDescription,
+    // });
+
+   const data =  await processEvaluationJob({ data: { filePath: filePath.path, jobDescription } });
+
+
 
     res.status(200).json({
       success: true,
       message: "File uploaded successfully. Your resume is being processed.",
+      data: data
     });
   } catch (err) {
     console.error("something is wrong ", err.message);

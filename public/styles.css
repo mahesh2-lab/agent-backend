@@ -257,6 +257,21 @@ body {
   color: #fff;
 }
 
+/* Small utility for the table action button matching the screenshot (orange pill) */
+.view-info-btn {
+  background: var(--color-accent);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.12);
+}
+.view-info-btn:hover {
+  transform: translateY(-1px);
+}
+
 /* Resume view */
 .resume-view {
   min-height: 160px;
@@ -360,7 +375,7 @@ body {
 
 /* Utility */
 .hidden {
-  display: none;
+  display: none !important;
 }
 input:focus,
 textarea:focus,

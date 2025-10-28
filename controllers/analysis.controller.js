@@ -18,6 +18,13 @@ export const receiveInterviewAnalysis = async (req, res) => {
       });
     }
 
+    console.log({
+      room_name,
+      transcript_data,
+      candidate_details,
+      job_description,
+    });
+
     const analysis = await handleProcessTranscript(transcript_data);
 
     analysis["context"] = {
