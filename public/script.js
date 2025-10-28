@@ -134,33 +134,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     resultsContainer.innerHTML = `
       <div class="resume-view">
-        <div class="rv-header"><h3>Result</h3></div>
-        <div class="results-table-wrapper">
-          <table class="results-table" role="table" aria-label="Parsed resumes">
-            <thead>
-              <tr>
-                <th>File</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Eligible</th>
-                <th>Email Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>${escapeHtml(fileLabel)}</td>
-                <td>${escapeHtml(name)}</td>
-                <td>${escapeHtml(email)}</td>
-                <td>${escapeHtml(phone)}</td>
-                <td>${escapeHtml(isEligible)}</td>
-                <td>✅</td>
-                <td><button id="view-full-btn" class="btn view-info-btn">View Info</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="rv-header"><h3>Result</h3></div>
+      <div class="results-table-wrapper">
+        <table class="results-table" role="table" aria-label="Parsed resumes">
+        <thead>
+          <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Eligible</th>
+          <th>Email Status</th>
+          <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+          <td>${escapeHtml(name)}</td>
+          <td>${escapeHtml(email)}</td>
+          <td>${escapeHtml(phone)}</td>
+          <td>${escapeHtml(isEligible)}</td>
+          <td>✅ The interview link is sent successfully</td>
+          <td><button id="view-full-btn" class="btn view-info-btn">View Info</button></td>
+          </tr>
+        </tbody>
+        </table>
+      </div>
       </div>
     `;
 
