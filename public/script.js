@@ -144,6 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <th>Email</th>
                 <th>Phone</th>
                 <th>Eligible</th>
+                <th>Email Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -154,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td>${escapeHtml(email)}</td>
                 <td>${escapeHtml(phone)}</td>
                 <td>${escapeHtml(isEligible)}</td>
+                <td>✅</td>
                 <td><button id="view-full-btn" class="btn view-info-btn">View Info</button></td>
               </tr>
             </tbody>
