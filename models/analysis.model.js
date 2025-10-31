@@ -13,6 +13,10 @@ const analysisSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  evaluationResult: {
+    type: String,
+    required: false,
+  },
   roomName: {
     type: String,
     required: true,

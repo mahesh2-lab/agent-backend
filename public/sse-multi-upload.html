@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>SSE Multi-file Upload Test</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        max-width: 900px;
+        margin: 32px auto;
+        padding: 0 16px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      form {
+        margin-bottom: 16px;
+      }
+      .events {
+        border: 1px solid #ddd;
+        padding: 12px;
+        min-height: 120px;
+        background: #fafafa;
+      }
+      .event {
+        margin-bottom: 8px;
+        padding: 8px;
+        border-radius: 6px;
+      }
+      .progress {
+        background: #eef6ff;
+      }
+      .result {
+        background: #e9ffef;
+      }
+      .error {
+        background: #ffecec;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .controls {
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SSE Multi-file Upload Test</h1>
+
+    <form id="uploadForm">
+      <label>Files (multiple allowed):</label><br />
+      <input type="file" name="files" id="files" multiple /><br /><br />
+
+      <label>Job description (optional):</label><br />
+      <textarea
+        id="jobDescription"
+        rows="4"
+        cols="60"
+        placeholder="Enter a job description or leave blank to use server default"
+      ></textarea>
+
+      <div class="controls">
+        <button type="submit">Upload & Stream</button>
+        <button type="button" id="abortBtn">Cancel</button>
+      </div>
+    </form>
+
+    <h3>Events</h3>
+    <div class="events" id="events"></div>
+
+    <script>
+      const form = document.getElementById("uploadForm");
+      const eventsEl = document.getElementById("events");
+      const abortBtn = document.getElementById("abortBtn");
+
+      function addEvent(kind, obj) {
+        const div = document.createElement("div");
+        div.className =
+          "event " +
+          (kind === "progress"
+            ? "progress"
+            : kind === "result"
+            ? "result"
+            : kind === "error"
+            ? "error"
+            : "");
+        const h = document.createElement("strong");
+        h.textContent = kind.toUpperCase();
+        const pre = document.createElement("pre");
+        try {
+          pre.textContent = JSON.stringify(obj, null, 2);
+        } catch (e) {
+          pre.textContent = String(obj);
+        }
+        div.appendChild(h);
+        div.appendChild(pre);
+        eventsEl.prepend(div);
+      }
+
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+
+        eventsEl.innerHTML = "";
+
+        const filesInput = document.getElementById("files");
+        const jobDescription =
+          document.getElementById("jobDescription").value || "";
+        if (!filesInput.files || filesInput.files.length === 0) {
+          alert("Choose at least one file");
+          return;
+        }
+
+        const fd = new FormData();
+        for (const f of filesInput.files) fd.append("resumeFile", f, f.name);
+        fd.append("jobDescription", jobDescription);
+
+        const controller = new AbortController();
+        window._sseAbort = controller; // expose to Cancel button
+
+        addEvent("info", { message: "Uploading and reading SSE stream..." });
+
+        try {
+          const res = await fetch("/api/resume/upload", {
+            method: "POST",
+            body: fd,
+            signal: controller.signal,
+          });
+
+          if (!res.ok) {
+            const txt = await res.text();
+            addEvent("error", { httpStatus: res.status, body: txt });
+            return;
+          }
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buf = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+
+            // SSE messages come separated by double newlines
+            const parts = buf.split("\n\n");
+            buf = parts.pop(); // incomplete part
+            for (const part of parts) {
+              if (!part.trim()) continue;
+              const lines = part.split("\n");
+              let event = "message";
+              let data = "";
+              for (const line of lines) {
+                if (line.startsWith("event:"))
+                  event = line.replace("event:", "").trim();
+                if (line.startsWith("data:"))
+                  data += line.replace("data:", "").trim();
+              }
+              let parsed = data;
+              try {
+                parsed = JSON.parse(data);
+              } catch (e) {
+                /* non-json data ok */
+              }
+              addEvent(event, parsed);
+            }
+          }
+
+          // process any leftover buffer
+          if (buf.trim()) {
+            const part = buf.trim();
+            const lines = part.split("\n");
+            let event = "message";
+            let data = "";
+            for (const line of lines) {
+              if (line.startsWith("event:"))
+                event = line.replace("event:", "").trim();
+              if (line.startsWith("data:"))
+                data += line.replace("data:", "").trim();
+            }
+            let parsed = data;
+            try {
+              parsed = JSON.parse(data);
+            } catch (e) {}
+            addEvent(event, parsed);
+          }
+        } catch (err) {
+          if (err.name === "AbortError") {
+            addEvent("error", { message: "Upload/stream aborted by user" });
+          } else {
+            addEvent("error", { message: err && err.message });
+          }
+        }
+      });
+
+      abortBtn.addEventListener("click", () => {
+        if (window._sseAbort) window._sseAbort.abort();
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,8 @@
-import { updateEntry, getEntryByRoomName } from "../services/db.service.js";
+import {
+  updateEntry,
+  getEntryByRoomName,
+  getRecentEntries,
+} from "../services/db.service.js";
 import { handleProcessTranscript } from "../services/evaluate.service.js";
 
 export const receiveInterviewAnalysis = async (req, res) => {
@@ -18,12 +22,6 @@ export const receiveInterviewAnalysis = async (req, res) => {
       });
     }
 
-    console.log({
-      room_name,
-      transcript_data,
-      candidate_details,
-      job_description,
-    });
 
     const analysis = await handleProcessTranscript(transcript_data);
 
@@ -59,6 +57,46 @@ export const receiveInterviewAnalysis = async (req, res) => {
       status: "error",
       message: error.message,
     });
+  }
+};
+
+export const getRecentAnalyses = async (req, res) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
+
+    const result = await getRecentEntries(limit);
+
+    if (!result.success) {
+      return res
+        .status(500)
+        .json({ status: "error", message: "Failed to fetch recent analyses" });
+    }
+
+    // Map results to parsed analysis and basic metadata
+    const mapped = (result.data || []).map((doc) => {
+      let parsed = null;
+      try {
+        parsed = doc.evaluationResult ? JSON.parse(doc.evaluationResult) : null;
+      } catch (err) {
+        parsed = doc.evaluationResult;
+      }
+
+      return {
+        id: doc._id,
+        name: doc.name,
+        roomName: doc.roomName,
+        candidateDetails: doc.candidateDetails,
+        jobDescription: doc.jobDescription,
+        status: doc.status,
+        createdAt: doc.createdAt,
+        analysis: parsed,
+      };
+    });
+
+    return res.status(200).json({ status: "success", analyses: mapped });
+  } catch (error) {
+    console.error("❌ Error retrieving recent analyses:", error);
+    return res.status(500).json({ status: "error", message: error.message });
   }
 };
 

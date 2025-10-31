@@ -23,7 +23,7 @@ const generate_room_name = async () => {
   return name;
 };
 
-export const createToken = async (name, candidateDetails, jobDescription) => {
+export const createToken = async (name, candidateDetails, jobDescription, evaluationResult) => {
   try {
     let room = await generate_room_name();
     const password = generatePassword();
@@ -52,6 +52,8 @@ export const createToken = async (name, candidateDetails, jobDescription) => {
       roomName: room,
       token: finalToken,
       password: hashPassword(password),
+      evaluationResult: evaluationResult
+
     });
 
     if (!response.success) {

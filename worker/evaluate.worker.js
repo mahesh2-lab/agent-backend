@@ -21,13 +21,15 @@ const handleEligibleCandidate = async (
   candidateDetails,
   jobDescription,
   result,
-  is_eligible
+  is_eligible,
+  evaluationResult
 ) => {
   try {
     const tokenResponse = await createToken(
       candidateDetails.name,
       JSON.stringify(candidateDetails),
-      JSON.stringify(jobDescription)
+      JSON.stringify(jobDescription),
+      JSON.stringify(evaluationResult)
     );
 
 
@@ -74,16 +76,10 @@ const handleEligibleCandidate = async (
 
 export const processEvaluationJob = async (job) => {
   
-  console.log(job);
   
 
   const { filePath, jobDescription } = job.data;
-  console.log(`Processing job ${job.id} for file ${filePath}`);
 
-  console.log({
-    filePath,
-    jobDescription
-  });
   
 
   try {
@@ -94,18 +90,18 @@ export const processEvaluationJob = async (job) => {
     };
 
     const result = await handleSingleFile(file, jobDescription);
-
-    console.log(`Job ${job.id} processed successfully:`, result);
     
 
     const is_eligible = result.response.evaluation.is_eligible;
     const candidateDetails = result.response.candidate_profile;
+    const evaluationResult = result.response.evaluation;
 
     await handleEligibleCandidate(
       candidateDetails,
       jobDescription,
       result,
-      is_eligible
+      is_eligible,
+      evaluationResult
     );
 
     return result;
@@ -126,6 +122,6 @@ export const processEvaluationJob = async (job) => {
 
 await connectDB();
 
-evaluateQueue.process(processEvaluationJob);
+// evaluateQueue.process(processEvaluationJob);
 
-console.log("Worker is listening for evaluation jobs...");
+// console.log("Worker is listening for evaluation jobs...");

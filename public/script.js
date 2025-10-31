@@ -61,10 +61,17 @@ document.addEventListener("DOMContentLoaded", function () {
     setStatus("Uploading and parsing...");
 
     try {
+      const files = fileInput.files || [];
+      const primaryName = files && files[0] ? files[0].name : "";
+
       const fd = new FormData();
-      fd.append("resumeFile", f);
+      // Append all selected files under the field name multer expects ('resumeFile')
+      for (let i = 0; i < files.length; i++) {
+        fd.append("resumeFile", files[i], files[i].name);
+      }
       fd.append("jobDescription", jobDescription.value || "");
 
+      // POST to the existing backend route that accepts multiple files
       const res = await fetch("/api/resume/upload", {
         method: "POST",
         body: fd,
@@ -75,37 +82,118 @@ document.addEventListener("DOMContentLoaded", function () {
         throw new Error(`Upload failed (${res.status}): ${text}`);
       }
 
-      const json = await res.json().catch(() => null);
-      console.log(json);
+      const contentType = res.headers.get("content-type") || "";
 
-      // Render a friendly result view — backend may return analysis JSON or just success.
-      // Be permissive about where the useful object is located so various backend
-      // shapes work: { analysisData }, { data: { response } }, { response }, { data }
-      if (json) {
+      // If server responds with an SSE stream, read it progressively
+      if (contentType.includes("text/event-stream") || res.body) {
+        // Stream and parse SSE-style events from the response body
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buf = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+
+          const parts = buf.split("\n\n");
+          buf = parts.pop();
+          for (const part of parts) {
+            if (!part.trim()) continue;
+            const lines = part.split("\n");
+            let event = "message";
+            let data = "";
+            for (const line of lines) {
+              if (line.startsWith("event:"))
+                event = line.replace("event:", "").trim();
+              if (line.startsWith("data:"))
+                data += line.replace("data:", "").trim();
+            }
+            let parsed = data;
+            try {
+              parsed = JSON.parse(data);
+            } catch (e) {}
+
+            // Handle known events
+            if (event === "progress") {
+              setStatus(
+                `Processing: ${
+                  parsed.file || parsed.index || primaryName || "..."
+                }`
+              );
+            } else if (event === "result") {
+              // If backend returns analysis, render it
+              const analysis =
+                parsed.result && parsed.result.response
+                  ? parsed.result.response
+                  : parsed.result || parsed;
+              // renderAnalysis expects the analysis object shape — try to normalize
+              if (analysis) {
+                renderAnalysis(analysis, parsed.file || primaryName);
+                setStatus("Analysis complete.");
+              } else {
+                // If the event contains a direct candidate object
+                if (parsed && parsed.response)
+                  renderAnalysis(parsed.response, parsed.file || primaryName);
+              }
+            } else if (event === "error") {
+              console.error("Server error event:", parsed);
+              setStatus(parsed.error || parsed.message || "Server error", true);
+            } else if (event === "done") {
+              setStatus("All files processed.");
+            }
+          }
+        }
+
+        // leftover buffer
+        if (buf.trim()) {
+          const part = buf.trim();
+          const lines = part.split("\n");
+          let event = "message";
+          let data = "";
+          for (const line of lines) {
+            if (line.startsWith("event:"))
+              event = line.replace("event:", "").trim();
+            if (line.startsWith("data:"))
+              data += line.replace("data:", "").trim();
+          }
+          let parsed = data;
+          try {
+            parsed = JSON.parse(data);
+          } catch (e) {}
+          if (event === "result") {
+            const analysis =
+              parsed.result && parsed.result.response
+                ? parsed.result.response
+                : parsed.result || parsed;
+            if (analysis) {
+              renderAnalysis(analysis, parsed.file || primaryName);
+              setStatus("Analysis complete.");
+            }
+          }
+        }
+      } else {
+        // fallback for non-streaming JSON responses
+        const json = await res.json().catch(() => null);
+        console.log(json);
+
         const analysis =
-          json.analysisData ||
-          (json.data && json.data.response) ||
-          json.response ||
-          json.data ||
-          null;
+          json &&
+          (json.analysisData ||
+            (json.data && json.data.response) ||
+            json.response ||
+            json.data ||
+            null);
         if (analysis) {
-          console.log("Analysis object:", analysis);
-          // pass the original filename so UI can display it in the File column
-          renderAnalysis(analysis, f && f.name ? f.name : "");
+          renderAnalysis(analysis, primaryName || "");
           setStatus("Analysis complete.");
-        } else if (json.success) {
+        } else if (json && json.success) {
           resultsContainer.innerHTML = `<div class="rv-eligible">Upload accepted — processing started. You will receive an email when analysis completes.</div>`;
           setStatus("Upload accepted — processing started.");
         } else {
           resultsContainer.innerHTML = `<div class=\"rv-eligible\">Parsing complete.</div>`;
           setStatus("Parsing complete.");
         }
-      } else if (json && json.success) {
-        resultsContainer.innerHTML = `<div class="rv-eligible">Upload accepted — processing started. You will receive an email when analysis completes.</div>`;
-        setStatus("Upload accepted — processing started.");
-      } else {
-        resultsContainer.innerHTML = `<div class=\"rv-eligible\">Parsing complete.</div>`;
-        setStatus("Parsing complete.");
       }
     } catch (err) {
       console.error(err);
@@ -116,58 +204,81 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function renderAnalysis(data, fileName = "") {
-    // Render a table-style result similar to the provided screenshot.
+    // Append result as a row in a persistent results table so multiple
+    // files can be displayed. Uses a results store on window to keep
+    // objects for the modal view.
+    window._results = window._results || [];
+    const idx = window._results.length;
+    window._results.push(data);
+
     const profile = data.candidate_profile || data.profile || data;
     const evaluation = data.evaluation || {};
 
     const name =
-      (profile &&
-        (profile.name || profile.fullName || profile.candidateName)) ||
+      (profile && (profile.name || profile.fullName || profile.candidateName)) ||
       "Candidate";
     const email = (profile && profile.email) || "-";
     const phone = (profile && profile.phone) || "-";
     const isEligible = evaluation.is_eligible ? "Yes" : "No";
+    const match_score = evaluation.match_score
 
-    // Determine file label to show in File column: prefer passed filename, then any field
-    const fileLabel =
-      fileName || profile.filename || profile.file_name || profile.file || "-";
+    const fileLabel = fileName || profile.filename || profile.file_name || profile.file || "-";
 
-    resultsContainer.innerHTML = `
-      <div class="resume-view">
-      <div class="rv-header"><h3>Result</h3></div>
-      <div class="results-table-wrapper">
-        <table class="results-table" role="table" aria-label="Parsed resumes">
-        <thead>
-          <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Eligible</th>
-          <th>Email Status</th>
-          <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-          <td>${escapeHtml(name)}</td>
-          <td>${escapeHtml(email)}</td>
-          <td>${escapeHtml(phone)}</td>
-          <td>${escapeHtml(isEligible)}</td>
-          <td>✅ The interview link is sent successfully</td>
-          <td><button id="view-full-btn" class="btn view-info-btn">View Info</button></td>
-          </tr>
-        </tbody>
-        </table>
-      </div>
-      </div>
+    // Ensure a results table exists
+    let table = document.getElementById("results-table");
+    if (!table) {
+      resultsContainer.innerHTML = `
+        <div class="resume-view">
+          <div class="rv-header"><h3>Results</h3></div>
+          <div class="results-table-wrapper">
+            <table id="results-table" class="results-table" role="table" aria-label="Parsed resumes">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Eligible</th>
+                  <th>Match Score</th>
+                  <th>Email Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="results-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      table = document.getElementById("results-table");
+    }
+
+    const tbody = document.getElementById("results-tbody");
+    if (!tbody) return;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(name)}</td>
+      <td>${escapeHtml(email)}</td>
+      <td>${escapeHtml(phone)}</td>
+      <td>${escapeHtml(isEligible)}</td>
+      <td>${escapeHtml(match_score !== undefined ? String(match_score) : "-")}%</td>
+      <td>✅ The interview link is sent successfully</td>
+      <td><button class="btn view-info-btn" data-idx="${idx}">View Info</button></td>
     `;
 
-    // Hook up the action button to open the modal with full details
-    const viewBtn = document.getElementById("view-full-btn");
-    if (viewBtn) {
-      viewBtn.addEventListener("click", function () {
-        showModal(data);
+    // Prepend newest result
+    if (tbody.firstChild) tbody.insertBefore(tr, tbody.firstChild);
+    else tbody.appendChild(tr);
+
+    // Event delegation for view buttons
+    if (!resultsContainer._delegationAdded) {
+      resultsContainer.addEventListener("click", function (e) {
+        const btn = e.target.closest && e.target.closest(".view-info-btn");
+        if (!btn) return;
+        const i = Number(btn.getAttribute("data-idx"));
+        const obj = window._results && window._results[i];
+        if (obj) showModal(obj);
       });
+      resultsContainer._delegationAdded = true;
     }
   }
 
@@ -223,6 +334,11 @@ document.addEventListener("DOMContentLoaded", function () {
           <div><strong>Eligible:</strong> ${
             evaluation.is_eligible ? "Yes" : "No"
           }</div>
+          <div><strong>Match Score:</strong> ${
+            evaluation.match_score !== undefined
+              ? escapeHtml(String(evaluation.match_score))
+              : "-"
+          }%</div>
           <div style="margin-top:6px;"><strong>Summary:</strong> ${escapeHtml(
             match
           )}</div>
