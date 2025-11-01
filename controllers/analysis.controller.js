@@ -2,6 +2,7 @@ import {
   updateEntry,
   getEntryByRoomName,
   getRecentEntries,
+  getAllEntries,
 } from "../services/db.service.js";
 import { handleProcessTranscript } from "../services/evaluate.service.js";
 
@@ -62,9 +63,8 @@ export const receiveInterviewAnalysis = async (req, res) => {
 
 export const getRecentAnalyses = async (req, res) => {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 10;
 
-    const result = await getRecentEntries(limit);
+    const result = await getRecentEntries();
 
     if (!result.success) {
       return res
@@ -96,6 +96,53 @@ export const getRecentAnalyses = async (req, res) => {
     return res.status(200).json({ status: "success", analyses: mapped });
   } catch (error) {
     console.error("❌ Error retrieving recent analyses:", error);
+    return res.status(500).json({ status: "error", message: error.message });
+  }
+};
+
+
+export const getAllAnalyses = async (req, res) => {
+  try {
+    const { page, limit, searchQuery } = req.query;
+
+    const result = await getAllEntries(
+      parseInt(page, 10),
+      parseInt(limit, 10),
+      searchQuery
+    );
+
+    if (!result.success) {
+      return res
+        .status(500)
+        .json({ status: "error", message: "Failed to fetch all analyses" });
+    }
+    const mapped = (result.data || []).map((doc) => {
+      let parsed = null;
+      try {
+      parsed = doc.evaluationResult ? JSON.parse(doc.evaluationResult) : null;
+      } catch (err) {
+      parsed = doc.evaluationResult;
+      }
+
+      return {
+      id: doc._id,
+      name: doc.name,
+      roomName: doc.roomName,
+      candidateDetails: doc.candidateDetails,
+      jobDescription: doc.jobDescription,
+      status: doc.status,
+      createdAt: doc.createdAt,
+      analysis: parsed,
+      };
+    });
+
+    return res.status(200).json({
+      status: "success",
+      analyses: mapped,
+      total: result.total,
+    });
+  } catch (error) {
+    console.error("❌ Error retrieving all analyses:", error);
     return res.status(500).json({ status: "error", message: error.message });
   }
 };

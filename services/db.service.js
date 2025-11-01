@@ -80,19 +80,38 @@ export const getEntryByRoomName = async (roomName) => {
   }
 };
 
-export const getRecentEntries = async (limit = 10) => {
+export const getRecentEntries = async () => {
   try {
-    const l = parseInt(limit, 10) || 10;
+    
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     // Return entries from today that have an analysis saved, newest first
     const data = await Analysis.find({ createdAt: { $gte: startOfToday } })
       .sort({ createdAt: -1 })
-      .limit(l);
 
     return { success: true, data };
   } catch (error) {
     console.error("Error in getRecentEntries:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+export const getAllEntries = async (page = 1, limit = 10, searchQuery = "") => {
+  try {
+    const query = searchQuery
+      ? { $text: { $search: searchQuery } }
+      : {};
+
+    const data = await Analysis.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const total = await Analysis.countDocuments(query);
+
+    return { success: true, data, total };
+  } catch (error) {
+    console.error("Error in getAllEntries:", error.message);
     return { success: false, error: error.message };
   }
 };
